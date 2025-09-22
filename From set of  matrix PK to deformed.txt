@@ -1,0 +1,36 @@
+/* ---------------------------------------------------------
+ Given a set of matrix generate the public key polynomials 
+ and the deformed matrices. This is used when 
+ creating toy examples
+------------------------------------------------------------*/
+
+q:= 37;
+m:= 3 ;
+n:= 5;
+
+GF :=GaloisField(q);
+SetSeed(12345); //you can remove or change this if you want. 
+
+Q := [RandomMatrix(GF, n,n): i in [1..m]]; //m random nxnmatrices
+
+printf "Here are our public key matrices\n";
+Q;
+Qsym := [Q[i]+Transpose(Q[i]): i in [1..m]];
+printf "Here are the symmetric representations of the corresponding polynomial\n";
+Qsym;
+printf "Here is the list of deformed matrices\n";
+
+
+// --- Construct the new list of deformed matrices Qdeformed ---
+// This list will contain n matrices, each of size n x m.
+
+Qsymtransposed := [Transpose(Qsym [i]): i in [1..m]];//Transpose all the matrices in Qsym once
+Qdeformed :=[Transpose(Matrix([(Qsymtransposed[i][j]): i in [1..m]])): j in [1..n] ]; 
+Qdeformed;
+printf "Here is the list of public key polynomials\n";
+P<[x]>:=PolynomialRing(GF,n);
+xmat := Matrix([[P.i: i in [1..n]]]);
+Q_cast:= [Matrix(P, Q[i]): i in [1..m]];
+//Q_cast;
+pk := [(xmat)*(Q_cast[i])*Transpose(xmat):i in [1..m]];
+pk 

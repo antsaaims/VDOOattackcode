@@ -1,0 +1,17 @@
+
+/*
+If you add the constraints manually, 
+this code will help you find roots 
+of univariate polynomials
+*/
+printf "*************************************************** \n";
+printf "***        Attacking Vdoo Signature Scheme      *** \n";
+printf "***            Solving a single equation        *** \n"; 
+printf "*************************************************** \n \n";
+
+q:=4; // Field Size
+GF<w>:=GaloisField(q);
+R<t> := PolynomialRing(GF);
+R;
+pol :=   t^2 +w;
+Roots(pol)

@@ -1,0 +1,149 @@
+/* ---------------------------------------------------------
+This is to make sure that we have the correct rank
+------------------------------------------------------------*/
+
+
+
+
+printf "*************************************************** \n";
+printf "***        Attacking Vdoo Signature Scheme      *** \n";
+printf "***  Checking we have the corrrect rank       *** \n";
+
+printf "*************************************************** \n \n";
+
+
+q:=4; // Field Size
+vdooparameters := [3,4,2,2]; //Write your VDOO parameter here
+
+
+m:= vdooparameters[2] + vdooparameters[3] +vdooparameters[4] ;
+n:= vdooparameters[1] + m;
+o2 :=vdooparameters[4];
+//GF :=GaloisField(q);
+GF<w>:=GaloisField(q);
+k := n - o2 + 1;
+r := o2;
+s := r*(n-r);
+vars := [ Sprintf("z%o", j) : j in [1..s] ] cat  [ Sprintf("a%o", i) : i in [1..k] ] ;
+//vars;
+
+A:= PolynomialRing(GF, #vars, "lex");
+
+AssignNames(~A, vars);
+
+P<[y]> := PolynomialRing(A,n);
+Pol<[x]>:=PolynomialRing(P,n);
+
+// Change this to your public key polynomial
+
+Pk:=  [
+w^2*x[1]^2 + w*x[1]*x[3] + x[1]*x[4] + x[1]*x[6] + w*x[1]*x[9] + w*x[1]*x[10] +
+w*x[1]*x[11] + w*x[2]^2 + x[2]*x[3] + w*x[2]*x[5] + w*x[2]*x[6] + x[2]*x[7] +
+w*x[2]*x[8] + w*x[2]*x[10] + w^2*x[3]^2 + w^2*x[3]*x[5] + w^2*x[3]*x[6] +
+w*x[3]*x[7] + w*x[3]*x[8] + w*x[3]*x[10] + w*x[4]^2 + x[4]*x[5] + w^2*x[4]*x[7]
++ w*x[4]*x[8] + x[4]*x[9] + w*x[4]*x[10] + w*x[4]*x[11] + w^2*x[5]^2 +
+w*x[5]*x[7] + x[5]*x[8] + w^2*x[5]*x[9] + x[5]*x[11] + x[6]*x[9] +
+w^2*x[6]*x[10] + w^2*x[6]*x[11] + w^2*x[7]^2 + x[7]*x[8] + w*x[7]*x[9] +
+w^2*x[7]*x[11] + x[8]^2 + x[8]*x[9] + x[8]*x[10] + w^2*x[8]*x[11] + w*x[9]*x[11]
++ w^2*x[10]^2 + w^2*x[10]*x[11] + x[11]^2,
+x[1]^2 + w*x[1]*x[2] + w^2*x[1]*x[3] + x[1]*x[4] + w^2*x[1]*x[5] + w^2*x[1]*x[6]
++ w*x[1]*x[8] + w*x[1]*x[9] + w^2*x[1]*x[10] + w^2*x[2]*x[3] + x[2]*x[4] +
+x[2]*x[6] + x[2]*x[7] + w^2*x[2]*x[9] + w^2*x[2]*x[10] + w^2*x[2]*x[11] +
+w*x[3]^2 + w*x[3]*x[4] + x[3]*x[5] + x[3]*x[6] + w^2*x[3]*x[7] + w^2*x[3]*x[8] +
+w^2*x[3]*x[9] + x[4]^2 + w*x[4]*x[5] + w^2*x[4]*x[6] + w*x[4]*x[7] + w*x[4]*x[8]
++ w*x[4]*x[9] + w^2*x[4]*x[10] + w*x[4]*x[11] + w^2*x[5]*x[7] + x[5]*x[8] +
+w^2*x[5]*x[11] + w^2*x[6]^2 + x[6]*x[7] + w*x[6]*x[8] + x[6]*x[9] + x[6]*x[10] +
+w^2*x[6]*x[11] + w^2*x[7]^2 + x[7]*x[8] + w^2*x[7]*x[11] + w^2*x[8]^2 +
+x[8]*x[9] + w*x[8]*x[10] + w^2*x[8]*x[11] + w^2*x[9]*x[11] + w*x[10]^2 +
+x[10]*x[11] + w*x[11]^2,
+w*x[1]^2 + w*x[1]*x[4] + w*x[1]*x[5] + w*x[1]*x[6] + x[1]*x[7] + w^2*x[1]*x[9] +
+x[1]*x[10] + x[1]*x[11] + w*x[2]*x[3] + w^2*x[2]*x[4] + w^2*x[2]*x[5] +
+x[2]*x[6] + w*x[2]*x[7] + w*x[2]*x[8] + w^2*x[2]*x[9] + w*x[2]*x[10] +
+w^2*x[2]*x[11] + w^2*x[3]*x[4] + w^2*x[3]*x[5] + x[3]*x[8] + w^2*x[3]*x[9] +
+w^2*x[3]*x[10] + w^2*x[3]*x[11] + w*x[4]^2 + x[4]*x[5] + w^2*x[4]*x[6] +
+w^2*x[4]*x[7] + w^2*x[4]*x[8] + x[4]*x[10] + w^2*x[4]*x[11] + w*x[5]^2 +
+w*x[5]*x[6] + w*x[5]*x[7] + x[5]*x[9] + w*x[5]*x[10] + w*x[5]*x[11] + w^2*x[6]^2
++ w^2*x[6]*x[7] + w*x[6]*x[9] + w^2*x[6]*x[11] + w*x[7]^2 + w^2*x[7]*x[8] +
+x[7]*x[10] + w*x[7]*x[11] + x[8]^2 + x[8]*x[11] + x[9]^2 + x[9]*x[10] +
+w*x[9]*x[11] + x[10]^2 + w^2*x[11]^2,
+w^2*x[1]^2 + w*x[1]*x[2] + w^2*x[1]*x[3] + w^2*x[1]*x[4] + w^2*x[1]*x[5] +
+w^2*x[1]*x[6] + w*x[1]*x[9] + x[2]^2 + x[2]*x[3] + x[2]*x[4] + w*x[2]*x[5] +
+w^2*x[2]*x[6] + w*x[2]*x[7] + w^2*x[2]*x[8] + w^2*x[2]*x[10] + x[2]*x[11] +
+w*x[3]^2 + w^2*x[3]*x[6] + w^2*x[3]*x[7] + w^2*x[3]*x[8] + w^2*x[3]*x[9] +
+w^2*x[3]*x[10] + w^2*x[3]*x[11] + x[4]^2 + w^2*x[4]*x[5] + w^2*x[4]*x[7] +
+x[4]*x[8] + w*x[4]*x[11] + w^2*x[5]^2 + x[5]*x[6] + w*x[5]*x[7] + w*x[5]*x[10] +
+w*x[5]*x[11] + w*x[6]^2 + x[6]*x[7] + w^2*x[6]*x[9] + w^2*x[6]*x[10] +
+x[6]*x[11] + w*x[7]^2 + x[7]*x[9] + x[7]*x[10] + w^2*x[7]*x[11] + w*x[8]*x[9] +
+w^2*x[8]*x[10] + w*x[8]*x[11] + w^2*x[9]^2 + x[10]^2 + w^2*x[10]*x[11],
+x[1]*x[2] + w*x[1]*x[3] + w*x[1]*x[4] + x[1]*x[5] + x[1]*x[6] + w*x[1]*x[8] +
+x[1]*x[9] + w^2*x[1]*x[11] + w^2*x[2]^2 + w*x[2]*x[3] + w*x[2]*x[4] + x[2]*x[7]
++ w*x[2]*x[8] + w^2*x[2]*x[9] + x[2]*x[10] + w*x[2]*x[11] + w*x[3]^2 +
+w^2*x[3]*x[5] + w*x[3]*x[6] + w^2*x[3]*x[7] + w*x[3]*x[8] + x[3]*x[10] +
+w^2*x[3]*x[11] + x[4]^2 + w*x[4]*x[5] + w^2*x[4]*x[6] + w*x[4]*x[7] +
+w^2*x[4]*x[8] + w*x[4]*x[9] + w^2*x[4]*x[10] + w*x[4]*x[11] + x[5]^2 +
+w*x[5]*x[6] + w*x[5]*x[8] + w*x[5]*x[9] + w^2*x[5]*x[10] + w^2*x[5]*x[11] +
+w^2*x[6]^2 + w^2*x[6]*x[7] + w*x[6]*x[8] + w^2*x[6]*x[9] + x[6]*x[10] +
+w*x[6]*x[11] + x[7]^2 + w^2*x[7]*x[9] + x[7]*x[11] + w^2*x[8]^2 + w^2*x[8]*x[9]
++ x[8]*x[10] + x[9]^2 + w^2*x[9]*x[10] + x[9]*x[11] + w*x[10]^2,
+x[1]^2 + w*x[1]*x[2] + x[1]*x[3] + x[1]*x[4] + x[1]*x[5] + x[1]*x[7] +
+w*x[1]*x[8] + w^2*x[1]*x[9] + w*x[1]*x[10] + w*x[1]*x[11] + w^2*x[2]^2 +
+x[2]*x[3] + w*x[2]*x[4] + w*x[2]*x[6] + x[2]*x[7] + x[2]*x[8] + w^2*x[2]*x[10] +
+x[2]*x[11] + x[3]^2 + x[3]*x[9] + w^2*x[4]^2 + w*x[4]*x[7] + w^2*x[4]*x[8] +
+w^2*x[4]*x[9] + x[4]*x[10] + w^2*x[4]*x[11] + w*x[5]^2 + w*x[5]*x[6] +
+w*x[5]*x[8] + w^2*x[5]*x[10] + x[5]*x[11] + x[6]*x[7] + w*x[6]*x[8] +
+w^2*x[6]*x[9] + w*x[6]*x[10] + w^2*x[7]^2 + w*x[7]*x[8] + x[7]*x[10] +
+x[7]*x[11] + w^2*x[8]*x[9] + w^2*x[8]*x[10] + w^2*x[9]^2 + w^2*x[9]*x[10] +
+w*x[9]*x[11] + x[10]^2 + w*x[10]*x[11],
+w*x[1]^2 + w^2*x[1]*x[2] + w*x[1]*x[4] + w^2*x[1]*x[6] + x[1]*x[7] +
+w^2*x[1]*x[8] + x[1]*x[9] + w*x[1]*x[10] + x[1]*x[11] + w^2*x[2]*x[4] +
+x[2]*x[6] + w*x[2]*x[9] + w^2*x[2]*x[10] + x[2]*x[11] + x[3]^2 + x[3]*x[5] +
+w^2*x[3]*x[6] + w*x[3]*x[7] + w*x[3]*x[8] + w*x[3]*x[9] + x[3]*x[10] +
+x[3]*x[11] + x[4]^2 + w^2*x[4]*x[5] + w^2*x[4]*x[6] + w^2*x[4]*x[7] + x[4]*x[8]
++ w^2*x[4]*x[10] + x[4]*x[11] + w^2*x[5]^2 + x[5]*x[7] + x[5]*x[9] + x[5]*x[10]
++ x[5]*x[11] + w^2*x[6]^2 + w^2*x[6]*x[7] + w^2*x[6]*x[8] + x[6]*x[9] +
+x[6]*x[10] + x[6]*x[11] + x[7]^2 + x[7]*x[8] + x[7]*x[9] + w^2*x[7]*x[10] +
+x[7]*x[11] + x[8]*x[9] + w^2*x[8]*x[10] + x[8]*x[11] + x[9]^2 + w*x[9]*x[10] +
+x[9]*x[11] + w*x[10]^2 + x[10]*x[11] + w*x[11]^2,
+w^2*x[1]*x[3] + w^2*x[1]*x[4] + x[1]*x[5] + w*x[1]*x[7] + x[1]*x[8] +
+w*x[1]*x[10] + w*x[1]*x[11] + w*x[2]^2 + w*x[2]*x[3] + w^2*x[2]*x[5] +
+w^2*x[2]*x[7] + w^2*x[2]*x[8] + w^2*x[2]*x[9] + w*x[2]*x[11] + x[3]^2 +
+x[3]*x[4] + w*x[3]*x[5] + x[3]*x[6] + x[3]*x[7] + w*x[3]*x[8] + w^2*x[3]*x[10] +
+x[3]*x[11] + x[4]^2 + w*x[4]*x[5] + w^2*x[4]*x[6] + x[4]*x[7] + x[4]*x[8] +
+w^2*x[4]*x[10] + w*x[4]*x[11] + x[5]^2 + w^2*x[5]*x[6] + x[5]*x[7] + x[5]*x[8] +
+w^2*x[5]*x[9] + w^2*x[5]*x[10] + x[5]*x[11] + w*x[6]^2 + w^2*x[6]*x[7] +
+x[6]*x[8] + x[6]*x[9] + w*x[7]^2 + w^2*x[7]*x[8] + w^2*x[7]*x[9] + x[7]*x[10] +
+x[8]^2 + w^2*x[8]*x[9] + x[8]*x[10] + x[8]*x[11] + x[9]^2 + w^2*x[9]*x[10] +
+x[9]*x[11] + w^2*x[10]*x[11] + x[11]^2
+] ;
+
+// Public key ends here, don't touch anything below
+
+Hashspace:=VectorSpace(GF,m);
+Signspace:= VectorSpace(GF,n);
+
+// creating the basis vectors
+
+basis_vectors := [ Signspace!([ i eq j select 1 else 0 : j in [1..n] ]) 
+    : i in [1..n]
+];
+//basis_vectors;
+
+yvar :=   Vector(([P.i: i in [1..n]]));
+ 
+Pprimelist:= [Vector(Evaluate( Pk, Eltseq(yvar + basis_vectors [i] ))) 
+             - Vector(Evaluate( Pk, Eltseq( basis_vectors [i] )))
+             -Vector(Evaluate( Pk, Eltseq(yvar  ))): i in [1..n]];      
+//Qdeformed := [([ Eltseq(Evaluate( Pprimelist[i], Eltseq(basis_vectors [j])) ): i in [1..n]]):j in [1..n]];
+
+Qdeformed := [Matrix(A,([ Eltseq(Evaluate( Pprimelist[i], Eltseq(basis_vectors [j])) ): i in [1..n]])):j in [1..n]];
+
+//Qdeformed;
+
+avec := [w,0,0,1,w,1,0,w,1,1,0];
+printf "The image of avec from the public key is (should be all 0) ";
+Evaluate(Pk, avec);
+printf "The matrix we got is ";
+MX  := &+[avec[i] * Qdeformed[i] : i in [1..k]] ;
+printf "The rank of this matrix is (should be o2 at most) ";
+Rank(MX)
+

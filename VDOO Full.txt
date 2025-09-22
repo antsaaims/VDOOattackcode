@@ -1,0 +1,276 @@
+/* ---------------------------------------------------------
+Generation of a VDOO key pair over GF(q) 
+public key is stored in public_key.txt
+private key is stored in private_key.txt
+This is a slightly modified version of 
+https://drive.google.com/file/d/1wb6LD9vi4M9C5Za1-P2fBFob0mE1-pgK/view, 
+which was created by Ding et al.
+We modified it to take the parameters of VDOO directly
+We also make the polynomials homogeneous
+------------------------------------------------------------*/
+
+clear ;
+
+q:=4; // field size
+vdooparameters := [3,4,2,2];
+diag := [1 : i in [1..vdooparameters[2]]];
+parameters := [vdooparameters[1]] cat diag;
+parameters := parameters cat vdooparameters[3..4];
+//parameters:=[3,1,1,1,1,2,2]; // Rainbow parameters (v_1, o_1, ..., o_u)
+u:= #parameters -1;
+
+v:=[];
+o:=[];
+
+v[1]:=parameters[1];
+for i:=1 to u do
+	o[i]:=parameters[i+1];
+	v[i+1]:=v[i]+o[i];
+end for;
+
+n:=v[u+1];
+m:=n-v[1];
+GF<w>:=GaloisField(q);
+Vn:=VectorSpace(GF,n);
+Vm:=VectorSpace(GF,m);
+
+P<[x]>:=PolynomialRing(GF,n);
+Pol<[y]>:=PolynomialRing(P,n);
+
+
+// key generation
+// affine map T -----------------------------------------------------------------------------
+repeat
+	MT:=RandomMatrix(GF,n,n);
+until IsInvertible(MT) eq true;
+//cT:= Random(Vn);
+
+T:=[];
+for i:=1 to n do
+	T[i]:=P!0;
+	for j:=1 to n do
+		T[i]:=T[i]+MT[i][j]*x[j];
+	end for;
+	// T[i]:=T[i]+cT[i];
+end for;
+
+// central map Q ---------------------------------------------------------------------------
+Qc:=[]; Q:=[];
+
+for greatloop:=1 to u do
+
+	for loop:=v[greatloop]-v[1]+1 to v[greatloop+1]-v[1] do // greatloop-th Layer --------------------------------
+		Q[loop]:=Pol!0;
+
+		for i:=1 to v[greatloop] do
+			for j:=1 to v[greatloop+1] do
+				Q[loop]:=Q[loop] + Random(GF)*Pol.i*Pol.j;
+			end for;
+		end for;
+
+		//for i:=1 to v[greatloop+1] do
+		//	Q[loop]:= Q[loop] + Random(GF)*Pol.i;
+		//end for;
+
+		//Q[loop]:=Q[loop]+Random(GF);
+
+	end for;
+end for; 
+
+// affine map S ---------------------------------------------------------------------------------------
+
+repeat
+	MSF:=RandomMatrix(GF,m,m);
+until IsInvertible(MSF) eq true;
+//cS:=Matrix(Pol,m,1,ChangeUniverse(Eltseq(Random(Vm)),Pol));
+MS:=Matrix(Pol,m,m,ChangeUniverse(Eltseq(MSF),Pol));
+
+// public key Pk ----------------------------------------------------------------------------
+QT:=ZeroMatrix(Pol,m,1);
+for i:=1 to m do
+	QT[i][1]:=Evaluate(Q[i],y[1], T[1]);
+	for j:=2 to n do
+		QT[i][1]:=Evaluate(QT[i][1],y[j], T[j]);
+	end for;
+end for;
+
+//Pk:=MS*QT+cS; removed to make S linear
+Pk:=MS*QT;
+
+D:=[];
+for i:=1 to m do
+	D[i]:=MonomialCoefficient(Pk[i][1],1);
+end for;
+Pk := D;
+
+
+// Output ----------------------------------------------------------------------------------
+printf "************************************************* \n";
+printf "*** Vdoo Signature Scheme (A special instance of Rainbow)- Key Generation *** \n";
+printf "************************************************* \n \n";
+
+printf"What follows is the public_key and it should be written to the file public_key.txt\n";
+//SetOutputFile("public_key.txt":Overwrite:=true);
+printf "q:= %o ; \n", q;
+printf "m:= %o ; \n", m;
+printf "n:= %o ; \n", n;
+printf "vdooparameters:= %o ; \n", vdooparameters;
+printf "//Rainbow parameters\nparameters:= %o ; \n", parameters;
+
+printf "GF<w>:=GaloisField(q); \n";
+printf "Pol<[x]>:=PolynomialRing(GF,n); \n";
+printf "Pk:= %o ; \n\n",D ;
+//UnsetOutputFile();
+ 
+printf"What  follows is the private_key and it should be written to the file private_key.txt \n";
+//SetOutputFile("private_key.txt":Overwrite:=true);
+printf "q:= %o ; \n", q;
+printf "v:= %o ; \n", v;
+printf "n:= %o ; \n", n;
+printf "m:= %o ; \n", m;
+printf "GF<w>:=GaloisField(q); \n";
+printf "Pol<[y]>:=PolynomialRing(GF,n); \n";
+printf "Q:= %o ; \n", Q;
+printf "MT:= %o ; \n", Eltseq(MT);
+//printf "cT:= %o ; \n", Eltseq(cT);
+printf "MS:= %o ; \n", Eltseq(MS);
+//printf "cS:= %o ; \n", Eltseq(cS);
+//UnsetOutputFile();
+
+
+
+
+/* ---------------------------------------------------------
+reads in private key from private_key.txt
+generates Rainbow signature of a random hash value
+hash value and signature be stored in signature.txt
+but here passed on directly to last part of program
+------------------------------------------------------------*/
+
+printf "******************************************************* \n";
+printf "*** VDOO Signature Scheme - Signature Generation *** \n";
+printf "*** instead of      load \"private_key.txt\";         *** \n";
+printf "*** a hashvalue is created below and signed          *** \n";      
+printf "******************************************************* \n \n";
+
+Hashspace:=VectorSpace(GF,m);
+Signspace:=VectorSpace(GF,n);
+
+MT:=Matrix(GF,n,n,Eltseq(MT));
+MS:=Matrix(GF,m,m,Eltseq(MS));
+//cT:=Signspace!(Eltseq(cT));
+//cS:=Hashspace!(Eltseq(cS));
+u:=#v-1;
+hashvalue:=Random(Hashspace);
+printf "hashvalue= %o \n \n", Eltseq(hashvalue);
+
+//_,x,_:=IsConsistent(Transpose(MS), cS); // invert affine map S 
+//_,x,_:=IsConsistent(Transpose(MS), hashvalue- cS); // invert affine map S 
+//_,x,_:=IsConsistent(Transpose(MS), cS); // invert affine map S // I removed this but don’t know whether this is a good idea or not!
+_,x,_:=IsConsistent(Transpose(MS), hashvalue); // invert affine map S 
+
+
+sequ:=[];
+
+//invert central map Q ----------------------------------------------------------------------------
+repeat
+	Q1:=Q;
+	sequ:=[];
+// guessing Vinegar variables and simplification of the system
+	for i:= 1 to v[1] do
+		sequ[i]:=Random(GF);
+		for loop:=1 to m do
+			Q1[loop]:=Evaluate(Q1[loop],y[i],sequ[i]);
+		end for;
+	end for;
+
+	//printf "Vinegar Variables:= %o \n \n", sequ;
+ 
+	for i:=2 to u+1 do
+
+		// solving the linear systems
+		OSpace:=VectorSpace(GF,v[i]-v[i-1]);
+		Qseq:=[]; c_Q1:=[];
+		for loop:=v[i-1]+1-v[1] to v[i]-v[1] do
+			c_Q1:= c_Q1 cat [MonomialCoefficient(Q1[loop],1)];
+			for j:=v[i-1]+1 to v[i] do
+				Qseq:=Qseq cat [MonomialCoefficient(Q1[loop],y[j])];
+			end for;
+		end for;
+		MatrixQ1:=Matrix(GF,v[i]-v[i-1],v[i]-v[i-1],Qseq);
+		c_Q1:=OSpace!(c_Q1);
+
+		// solution vector
+		x1:=[];
+		for k:=1 to v[i]-v[i-1] do
+			x1[k]:=x[k+v[i-1]-v[1]];
+		end for;
+
+		tr,y1,_:=IsConsistent(Transpose(MatrixQ1),OSpace!(x1)-c_Q1);
+
+		if tr then
+			printf"Solution for Layer %o: %o \n", i-1, y1;
+		else
+			printf "No Solution for Layer %o: Choose other Vinegar Variables\n", i-1;
+			break;
+		end if;
+		sequ:=sequ cat Eltseq(y1);
+
+
+		// simplify the system by substituting the values of the oil variables
+		for loop:=v[i]-v[1] to m do
+			for j:= v[i-1]+1 to v[i] do 
+				Q1[loop]:=Evaluate(Q1[loop],y[j],sequ[j]);
+			end for;
+		end for;
+
+	end for;
+until tr;
+
+y:=Signspace!(sequ);
+
+//_,signature,_:=IsConsistent(Transpose(MT),y-cT); // invert T  removed to make T linear
+_,signature,_:=IsConsistent(Transpose(MT),y); // invert T 
+
+// Output
+signature := Eltseq(signature) ;
+printf"signature:= %o \n \n", signature;
+
+printf"What follows should be written to the file signature.txt \n \n";
+//SetOutputGFile("signature.txt":Overwrite:=true);
+printf "Hashspace:=VectorSpace(GF,m); \n";
+printf "Signspace:= VectorSpace(GF,n);\n";
+printf "hashvalue:=Hashspace!(%o) ; \n", Eltseq(hashvalue);
+printf "signature:= Signspace!(%o) ; \n", Eltseq(signature);
+//UnsetOutputGFile();
+
+
+
+/* ---------------------------------------------------------------------------------------------
+verification of a Rainbow signature
+loads public key from public_key.txt and signature and hash value from signature_txt
+and checks if signature is a valid Rainbow signature for the hash value 
+it is done here in line
+ --------------------------------------------------------------------------*/
+
+printf "********************************************************* \n";
+printf "*** Rainbow Signature Scheme - Signature Verification *** \n";
+printf "********************************************************* \n \n";
+
+
+//load "public_key.txt";
+
+printf"signature:= %o \n", signature;
+printf"hashvalue:=    %o \n", Eltseq(hashvalue);
+
+hash2:= Evaluate( Pk,signature ) ;
+
+printf "P(signature):= %o \n \n", hash2;
+
+if Eltseq(hashvalue) eq hash2 then
+	printf "CORRECT!";
+else
+	printf "FALSE!";
+end if;
+
+exit;

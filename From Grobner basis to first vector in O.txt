@@ -1,0 +1,47 @@
+/* ---------------------------------------------------------
+Given the Grobner basis from before,
+Add more affine contraints to find the vector o in O. 
+I added the affine constraints by hand after looking 
+at what the Grobner basis looked like.
+A better way to do thsi will be to 
+generate affine contraints
+------------------------------------------------------------*/
+
+ 
+
+q:=4; // Field Size
+vdooparameters := [3,4,2,2]; //Write your VDOO parameter here
+
+
+m:= vdooparameters[2] + vdooparameters[3] +vdooparameters[4] ;
+n:= vdooparameters[1] + m;
+o2 :=vdooparameters[4];
+//GF :=GaloisField(q);
+GF<w>:=GaloisField(q);
+k := n - o2 + 1;
+r := o2;
+s := r*(n-r);
+vars := [ Sprintf("z%o", j) : j in [1..s] ] cat  [ Sprintf("a%o", i) : i in [1..k] ] ;
+vars;
+
+A:= PolynomialRing(GF, #vars, "lex");
+
+AssignNames(~A, vars);
+
+a := [A.i: i in [s+1..k+s]];
+
+Polylist := [a[1] + w*a[9],
+    a[2] + a[9] + a[10],
+    a[3] + w*a[9] + w*a[10],
+    a[4] + a[10],
+    a[5] + w^2*a[9] + a[10],
+    a[6] + a[9],
+    a[7] + w^2*a[9] + w^2*a[10],
+    a[8] + a[9] + w^2*a[10],
+    a[9]-1,
+    a[10]-1];
+
+
+I := ideal< A| Polylist >;
+G := GroebnerBasis(I);
+print(G);
