@@ -1,0 +1,69 @@
+# Finding the complexity of MinRank 
+# attack for Rainbow and VDOO
+# Sagemath code
+#Without P(y) = 0 for this one
+# example: Rainbow 2nd 1a
+q = 256
+n = 196
+d = 0
+o1 = 36
+o2 = 64
+v = n - d - o1 - o2
+
+
+def findmandb(q,v,d,o1,o2):
+    
+    print("Our parameters q,v,d,o1,o2: " +str([q,v,d,o1,o2]))
+    nrows = v+ d + o1 + o2 -1
+    ncols = d + o1 + o2 #This can change 
+    nmatrix = v+ d + o1+ 1
+    rank = o2
+
+    ngatespermult = 2 * (log(q**2,2) + log(q,2))
+
+    def findb(mprime):
+        for b in range(1, rank + 3):
+            nx = nmatrix
+            ny = binomial(mprime, rank)
+            mb1 = binomial(b + nx -1,b)*ny
+            R = sum([ (-1)**(i+1) 
+                 * binomial(mprime, rank +i) 
+                 *binomial(nrows + i -1, i)
+                 * binomial(nmatrix + b -i -1, b-i) for i in range(1,b+1)])
+            if R - mb1 + 1>0 :
+                break
+  
+        r = round(log(ngatespermult *3* mb1**2*(rank + 1)*nmatrix,2),5) 
+        return([b,r.ceil()]) #the current complexity
+    goodchoice = [0,[0,100000]]
+    for mprime in range( rank+1 , ncols+1): 
+        #print("Finding b for mprime=" + str(goodchoice[0]))
+        currentresult = findb(mprime)
+        
+        if goodchoice[1][1]>currentresult[1]:
+            goodchoice =  [mprime, currentresult]
+    print("mprime is " + str(goodchoice[0]))
+    print("b is " + str(goodchoice[1][0])) 
+    print("log_2 gate is " + str(goodchoice[1][1]))   
+    return(goodchoice)
+print("Testing with Rainbow and show that this \n actually gives what Beullens has computed")
+print("Rainbow Finals 1a")
+
+findmandb(16,100-2*32,0,32,32)  
+
+print("Rainbow Finals 3c")
+findmandb(256,148 -32-48,0,32,48)  
+
+print("Rainbow Finals 5c")
+findmandb(256,196-36-64,0,36,64)  
+
+
+print("Now using teh VDOO parameters")
+print("VDOO SL-I")
+findmandb(16,60,30,34,36)
+print("VDOO SL-III")
+findmandb(256,100,30,40,40)
+print("VDOO SL-V")
+findmandb(256,120,50,60,70)
+
+     
