@@ -58,7 +58,7 @@ print("Rainbow Finals 5c")
 findmandb(256,196-36-64,0,36,64)  
 
 
-print("Now using teh VDOO parameters")
+print("Now using the VDOO parameters")
 print("VDOO SL-I")
 findmandb(16,60,30,34,36)
 print("VDOO SL-III")
